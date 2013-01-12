@@ -18,35 +18,30 @@
 	<!--LayoutRoot is the root grid where all page content is placed-->
 	<Grid x:Name="LayoutRoot" Background="Transparent">
 		<!--Pivot Control-->
-		<controls:Pivot Title="MY APPLICATION">
+		<controls:Pivot Title="ShopperSoft">
 			<!--Pivot item one-->
-			<controls:PivotItem Header="first">
+			<controls:PivotItem Header="User" Margin="0,10,0,1">
+				<Grid HorizontalAlignment="Left" Height="624" VerticalAlignment="Top" Width="480">
+					<TextBox HorizontalAlignment="Left" Height="72" TextWrapping="Wrap" Text="Add Item" VerticalAlignment="Top" Width="381"/>
+					<Button Content="+" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="386,0,0,0" Width="94"/>
+					<Grid HorizontalAlignment="Left" Height="547" VerticalAlignment="Top" Width="480" Margin="0,77,0,0" ScrollViewer.VerticalScrollBarVisibility="Auto">
+						<Grid x:Name="ItemGrid" HorizontalAlignment="Left" Height="70" VerticalAlignment="Top" Width="480">
+							<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="1 Packet Maggie" Width="310" FontSize="32" Margin="0" Padding="15,9,0,0"/>
+							<Button Content="Sh" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="315,0,0,0" Width="80"/>
+							<Button Content="-" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="400,0,0,0" Width="80" RenderTransformOrigin="0.897,0.639"/>
+						</Grid>
+					</Grid>
+				</Grid>
 				<!--Double line list with text wrapping-->
-				<ListBox x:Name="FirstListBox" ItemsSource="{Binding Items}" Margin="0,0,-12,0">
-					<ListBox.ItemTemplate>
-						<DataTemplate>
-							<StackPanel Margin="0,0,0,17" Width="432" Height="78">
-								<TextBlock Text="{Binding LineOne}" TextWrapping="Wrap" Style="{StaticResource PhoneTextExtraLargeStyle}"/>
-								<TextBlock Text="{Binding LineTwo}" TextWrapping="Wrap" Margin="12,-6,12,0" Style="{StaticResource PhoneTextSubtleStyle}"/>
-							</StackPanel>
-						</DataTemplate>
-					</ListBox.ItemTemplate>
-				</ListBox>
 			</controls:PivotItem>
 
 			<!--Pivot item two-->
-			<controls:PivotItem Header="second">
+			<controls:PivotItem Header="Friends">
+				<Grid HorizontalAlignment="Left" Height="607" VerticalAlignment="Top" Width="456"/>
 				<!--Triple line list no text wrapping-->
-				<ListBox x:Name="SecondListBox" ItemsSource="{Binding Items}" Margin="0,0,-12,0">
-					<ListBox.ItemTemplate>
-						<DataTemplate>
-							<StackPanel Margin="0,0,0,17" Width="432" Height="78">
-								<TextBlock Text="{Binding LineOne}" TextWrapping="NoWrap" Margin="12,0,0,0" Style="{StaticResource PhoneTextExtraLargeStyle}"/>
-								<TextBlock Text="{Binding LineThree}" TextWrapping="NoWrap" Margin="12,-6,0,0" Style="{StaticResource PhoneTextSubtleStyle}"/>
-							</StackPanel>
-						</DataTemplate>
-					</ListBox.ItemTemplate>
-				</ListBox>
+			</controls:PivotItem>
+			<controls:PivotItem Header="item" HorizontalAlignment="Left" Height="100" Margin="0" VerticalAlignment="Top" Width="100">
+				<Grid/>
 			</controls:PivotItem>
 		</controls:Pivot>
 	</Grid>
