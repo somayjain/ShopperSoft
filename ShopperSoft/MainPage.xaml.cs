@@ -27,14 +27,10 @@ namespace ShopperSoft
 {
     public partial class MainPage : PhoneApplicationPage
     {
-        /* variables imported */
-        private MobileServiceCollectionView<Items> items;
-
         public ObservableCollection<Items> retreive = new ObservableCollection<Items>();
         public ObservableCollection<Items> retreive2 = new ObservableCollection<Items>();
         private ObservableCollection<Items> buffer = new ObservableCollection<Items>();
 
-    //    public static Items local;
         public static Items checked_item;
         public static Items local = new Items();
 
@@ -52,31 +48,22 @@ namespace ShopperSoft
 
         public static bool online;
 
-
-
-
         private static IMobileServiceTable<Relations> relationsTable;
         private MobileServiceCollectionView<Relations> relation;
 
         PhoneNumberChooserTask phoneNumberChooserTask;
 
-
-
-        // Constructor
         public MainPage()
         {
             InitializeComponent();
-            /////
-             
             InitializeSettings();
+
             // TODO:
             // Refresh to do item
             CheckNetworkAvailability();
             RefreshTodoItems();
-            RefreshTheirCart();
             DeviceNetworkInformation.NetworkAvailabilityChanged += new EventHandler<NetworkNotificationEventArgs>(NetworkChange);
               
-            /////
             // Set the data context of the listbox control to the sample data
             DataContext = App.ViewModel;
             this.Loaded +=new RoutedEventHandler(MainPage_Loaded);
@@ -95,19 +82,14 @@ namespace ShopperSoft
         {
             online = NetworkInterface.NetworkInterfaceType.ToString()!="None";
  
-            Debug.WriteLine(online);
             if (online)
             {
-                // Connect to Azure 
-
-                //TODO Change link
                 MobileService = new MobileServiceClient(
                      "https://shopappdata.azure-mobile.net/",
                        "dkwwuiuHYYQwbozjKaWRJYYpEiTjFt73"
                 );
                 itemTable = MobileService.GetTable<Items>();
                 
-                // Add buffer items in tasks
                 buffer = XmlTaskService.GetTasks("buffer.xml");
                 foreach (Items buffitem in buffer)
                 {
@@ -117,13 +99,10 @@ namespace ShopperSoft
                         XmlTaskService.CreateTask(buffitem, "tasks.xml");
                     }
                     catch
-                    {
-
-                    }
+                    { }
                 }
                 XmlTaskService.DeleteAllTasks("buffer.xml");
                 buffer.Clear();
-
 
                 buffer = XmlTaskService.GetTasks("checked.xml");
                 foreach (Items buffitem in buffer)
@@ -137,8 +116,7 @@ namespace ShopperSoft
                         await itemTable.UpdateAsync(checked_item);
                     }
                     catch
-                    {
-                    }
+                    { }
                 }
                 XmlTaskService.DeleteAllTasks("checked.xml");
                 buffer.Clear();
@@ -152,8 +130,7 @@ namespace ShopperSoft
                         await itemTable.DeleteAsync(checked_item);
                     }
                     catch
-                    {
-                    }
+                    { }
                 }
                 XmlTaskService.DeleteAllTasks("delete.xml");
                 buffer.Clear();
@@ -172,8 +149,6 @@ namespace ShopperSoft
                 pnumber = (string)settings["Pnumber"];
                 user_id = (int)settings["id"];
                 user_name = (string)settings["name"];
-                RefreshMyCart();
-			//	RefreshTheirCart();
             }
             else
             {
@@ -196,6 +171,7 @@ namespace ShopperSoft
             newGrid.Height = 70;
             newGrid.VerticalAlignment = VerticalAlignment.Top;
             newGrid.Width = 480;
+            newGrid.Opacity = 0.8;
 
             var linearGradient = new LinearGradientBrush();
             linearGradient.EndPoint = new Point(0.5, 1);
@@ -215,6 +191,7 @@ namespace ShopperSoft
             gradientStop.Color = color;
             gradientStop.Offset = 1;
             linearGradient.GradientStops.Add(gradientStop);
+            linearGradient.Opacity = 0.5;
 
             newGrid.Background = linearGradient;
 
@@ -271,16 +248,13 @@ namespace ShopperSoft
             ItemListBox.Items.Add(newGrid);
 		}
 
-
-
-		
-		// Buy  wala
 		private void AddNewItemToBuyGrid(String itemLabel, int itemId) {
 			var newGrid = new Grid();
             newGrid.Tag = itemId.ToString();
             newGrid.Height = 70;
             newGrid.VerticalAlignment = VerticalAlignment.Top;
             newGrid.Width = 480;
+            newGrid.Opacity = 0.8;
 
             var linearGradient = new LinearGradientBrush();
             linearGradient.EndPoint = new Point(0.5, 1);
@@ -300,7 +274,8 @@ namespace ShopperSoft
             gradientStop.Color = color;
             gradientStop.Offset = 1;
             linearGradient.GradientStops.Add(gradientStop);
-
+            linearGradient.Opacity = 0.4;
+                
             newGrid.Background = linearGradient;
 
             var textBlock = new TextBlock();
@@ -311,21 +286,7 @@ namespace ShopperSoft
             textBlock.FontSize = 32;
             textBlock.Margin = new Thickness(0);
             textBlock.Padding = new Thickness(15, 9, 0, 0);
-/*
-            var button = new Button();
-            button.Tag = itemId.ToString();
-            button.Margin = new Thickness(315, 0, 85, 0);
-            button.BorderThickness = new Thickness(0);
-            button.BorderBrush = null;
-            button.Foreground = null;
-            button.Tap += ShareItemWithFriends;
 
-            var imageBrush = new ImageBrush();
-            imageBrush.ImageSource = new BitmapImage(new Uri(@"\Assets\Icons\appbar.cloud.upload.png", UriKind.Relative));
-            imageBrush.Stretch = Stretch.None;
-
-            button.Background = imageBrush;
-            */
             var button2 = new Button();
             button2.Tag = itemId.ToString();
             button2.Margin = new Thickness(400, 0, 0, 0);
@@ -341,17 +302,10 @@ namespace ShopperSoft
             button2.Background = imageBrush2;
 
             newGrid.Children.Add(textBlock);
-//            newGrid.Children.Add(button);
             newGrid.Children.Add(button2);
 
             ItemBuyBox.Items.Add(newGrid);
 		}
-
-		
-		
-		
-		
-		
 
         private void AddFriendInformation(String friendName, int friendId, Dictionary<int, String> itemList)
         {
@@ -445,9 +399,7 @@ namespace ShopperSoft
 
         private async void ShareItemWithFriends(object sender, System.Windows.Input.GestureEventArgs e)
         {
-
             string itemName="";
-            
 
             foreach (var objects in ((Grid)((Button)sender).Parent).Children) {
                 if (objects is TextBlock)
@@ -459,7 +411,6 @@ namespace ShopperSoft
             var solidBrush = new SolidColorBrush(Colors.Green);
             ((Button)sender).BorderBrush = solidBrush;
             ((Button)sender).Tap -= ShareItemWithFriends;
-
 
             Items item = new Items();
             
@@ -518,75 +469,95 @@ namespace ShopperSoft
         // Function to buy item
         private async void BuyItem(object sender, System.Windows.Input.GestureEventArgs e)
         {
+            var itemId = ((Button)sender).Tag;
 
+            string itemName=null;
+            foreach (var objects in ((Grid)((Button)sender).Parent).Children)
+            {
+                if (objects is TextBlock)
+                {
+                    itemName = ((TextBlock)objects).Text;
+                }
+            }
+
+            // Remove item corresponding to itemId/itemName from database.
+            XmlTaskService.DeleteTask(itemName, "tasks.xml");
+            // Remove item corresponding to itemId/itemName from XML tables.
+
+            itemTable = MobileService.GetTable<Items>();
+         
+            
+            var myList1 = await itemTable.Where(itemabc => itemabc.Text == itemName).ToListAsync();
+            
+            try
+            {
+                await itemTable.DeleteAsync(myList1[0]);
+            }
+            catch
+            { }
+            
+            var parent = (ListBox)((Grid)((Button)sender).Parent).Parent;
+            parent.Items.Remove(((Grid)((Button)sender).Parent));
         }
 
 
         private async void FillFriendsInformation(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             // TODO: Add event handler implementation here.
-            if (((Pivot)sender).SelectedIndex == 1)
+            if (((Pivot)sender).SelectedIndex == 0)
             {
-                MobileService = new MobileServiceClient(
-                  "https://shopappdata.azure-mobile.net/",
-                    "dkwwuiuHYYQwbozjKaWRJYYpEiTjFt73"
-             );
-      //          FriendsListPanel.Children.Clear();
+                RefreshTodoItems();
+            } else  if (((Pivot)sender).SelectedIndex == 1)
+            {
+                FriendsListPanel.Children.Clear();
 
-                relationsTable = MobileService.GetTable<Relations>();
-
-                
-                var myList1 = await relationsTable.Where(itemabc => itemabc.Id > -1 ).ToListAsync();
-
-                var myList2 = await relationsTable.Where(item2 => item2.Receiver_Id == user_id).ToListAsync();
-
-                Debug.WriteLine(myList1.Count);
-                Debug.WriteLine(myList2.Count);
-
-                List<int> userList = new List<int>();
-                //if (myList1 != null)
+                if (online)
                 {
+                    relationsTable = MobileService.GetTable<Relations>();
+                    var myList1 = await relationsTable.Where(itemabc => itemabc.Sender_Id == user_id).ToListAsync();
+                    var myList2 = await relationsTable.Where(item2 => item2.Receiver_Id == user_id).ToListAsync();
+
+                    List<int> userList = new List<int>();
                     foreach (var val in myList1)
                     {
-                        Debug.WriteLine("1");
-                        userList.Add(val.Receiver_Id);
+                        if (val.Receiver_Id != user_id) userList.Add(val.Receiver_Id);
                     }
-                }
-
-                if (myList2 != null)
-                {
 
                     foreach (var val in myList2)
                     {
-                        Debug.WriteLine("1");
-                        userList.Add(val.Sender_Id);
+                        if (val.Sender_Id != user_id) userList.Add(val.Sender_Id);
                     }
 
+                    itemTable = MobileService.GetTable<Items>();
+                    foreach (var user in userList)
+                    {
+                        var items = await itemTable.Where(user2 => ((user2.User_Id == user) && (user2.shared == true))).ToListAsync();
+                        var itemList = new Dictionary<int, String>();
+                        foreach (var item in items)
+                        {
+                            itemList.Add(item.Id, item.Text);
+                        }
+                        userTable = MobileService.GetTable<Users>();
+                        var list = await userTable.Where(user3 => (user3.Id == user)).ToListAsync();
+
+                        AddFriendInformation(list[0].Name, user, itemList);
+                    }
                 }
-                itemTable = MobileService.GetTable<Items>();
-                foreach (var user in userList)
+                else
                 {
-                   var items= await itemTable.Where(user2 => ((user2.User_Id==user) && (user2.shared==true))  ).ToListAsync();
-                   var itemList = new Dictionary<int, String>();
-                   foreach(var item in items)
-                   {
-                       itemList.Add(item.Id, item.Text);
-                   }
-                   userTable = MobileService.GetTable<Users>();
-                   var list = await userTable.Where(user3 => (user3.Id == user)).ToListAsync();
-                   
-                   AddFriendInformation(list[0].Name, user, itemList);
-
-
+                    AddFriendInformation("Unavailable, check connectivity", 0, null);
                 }
-
-              
             }
-
+            else if (((Pivot)sender).SelectedIndex == 2)
+            {
+                RefreshMyCart();
+    			RefreshTheirCart();
+            }
         }
 
         private void RefreshTodoItems()
         {
+            ItemListBox.Items.Clear();
             retreive = XmlTaskService.GetTasks("tasks.xml");
             retreive2 = XmlTaskService.GetTasks("buffer.xml");
             foreach (Items buffitem in retreive)
@@ -605,9 +576,7 @@ namespace ShopperSoft
             phoneNumberChooserTask.Show();
         }
 
-
         private async void phoneNumberChooserTask_Completed(object sender, PhoneNumberResult e)
-
         {
             if (online)
             {
@@ -615,32 +584,27 @@ namespace ShopperSoft
                 {
                     MessageBox.Show("Adding " + e.DisplayName + " with phone no. " + e.PhoneNumber + " as friend. Press ok to continue");
 
-
                     var userTable = MobileService.GetTable<Users>();
                     var list = await userTable.Where(user2 => user2.Phone_no == e.PhoneNumber).ToListAsync();
 
-                    Relations friend = new Relations();
-                    friend.Receiver_Id= user_id;
                     try
                     {
+                        Relations friend = new Relations();
+                        friend.Receiver_Id = user_id;
                         friend.Sender_Id = list[0].Id;
                         friend.Status = 3;
 
                         relationsTable = MobileService.GetTable<Relations>();
-
                         await relationsTable.InsertAsync(friend);
                     }
                     catch { }
-
-
                 }
-
             }
         }
 
-
 		private void RefreshMyCart()
 		{
+            ItemBuyBox.Items.Clear();
             retreive = XmlTaskService.GetTasks("tasks.xml");
             retreive2 = XmlTaskService.GetTasks("buffer.xml");
             foreach (Items buffitem in retreive)
@@ -662,27 +626,26 @@ namespace ShopperSoft
             ItemBuyBox.Items.Add(Rectangle);
 
         }
+
 		private async void RefreshTheirCart()
 		{
             if(online)
             {
-                Debug.WriteLine("Refresh their");
+
+                relationsTable = MobileService.GetTable<Relations>();
+
+                var myList1 = await relationsTable.Where(itemabc => itemabc.Sender_Id == user_id).ToListAsync();
+
+                var myList2 = await relationsTable.Where(item2 => item2.Receiver_Id == user_id).ToListAsync();
 
                 
-                 relationsTable = MobileService.GetTable<Relations>();
-                var myList1 = await relationsTable.Where(item2 => (( item2.Sender_Id== user_id) && (item2.Status == 3))).ToListAsync();
-       
-                var myList2 = await relationsTable.Where(item2 => ((item2.Receiver_Id == user_id) && (item2.Status == 3))).ToListAsync();
-
                 List<int> userList= new List<int>();
                 foreach (var val in myList1)
                 {
-                    Debug.WriteLine("Refresh their");
                     userList.Add(val.Receiver_Id);
                 }
                 foreach (var val in myList2)
                 {
-                    Debug.WriteLine("Refresh their2");
                     userList.Add(val.Sender_Id);
                 }
 
@@ -696,7 +659,7 @@ namespace ShopperSoft
                     tempList = await itemTable.Where(item2 => item2.User_Id == val).ToListAsync();
                     foreach(var val2 in tempList)
                     {
-                        final.Add(val2);
+                        if(val2.shared == true)final.Add(val2);
                     }
                 }
                 foreach (Items buffitem in final)
