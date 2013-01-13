@@ -58,7 +58,7 @@ namespace ShopperSoft
             // TODO: send this username and phoneno. to be added into the database
 
 
-            NavigationService.Navigate(new Uri("/MainPage.xaml", UriKind.Relative));
+            NavigationService.GoBack();
         }
     }
 }
