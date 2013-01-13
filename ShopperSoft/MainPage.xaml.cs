@@ -22,6 +22,8 @@ using Microsoft.Phone.Net.NetworkInformation;
 using Microsoft.WindowsAzure.MobileServices;
 using Microsoft.Phone.Tasks;
 using Windows.Phone.Speech.Recognition;
+using Microsoft.Phone.Notification;
+
 
 namespace ShopperSoft
 {
@@ -42,7 +44,7 @@ namespace ShopperSoft
 
         public static IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;
 
-        public string pnumber;
+        public  string pnumber;
         public int user_id;
         public string user_name;
 
@@ -52,6 +54,9 @@ namespace ShopperSoft
         private MobileServiceCollectionView<Relations> relation;
 
         PhoneNumberChooserTask phoneNumberChooserTask;
+
+        public static HttpNotificationChannel CurrentChannel { get; private set; }
+
 
         public MainPage()
         {
@@ -67,6 +72,8 @@ namespace ShopperSoft
             // Set the data context of the listbox control to the sample data
             DataContext = App.ViewModel;
             this.Loaded +=new RoutedEventHandler(MainPage_Loaded);
+
+//            AcquirePushChannel();
         }
         
         private void InitializeSettings()
@@ -469,35 +476,58 @@ namespace ShopperSoft
         // Function to buy item
         private async void BuyItem(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            var itemId = ((Button)sender).Tag;
-
-            string itemName=null;
-            foreach (var objects in ((Grid)((Button)sender).Parent).Children)
+            if (online)
             {
-                if (objects is TextBlock)
+                
+
+                var itemId = ((Button)sender).Tag.ToString();
+
+                string itemName = null;
+                foreach (var objects in ((Grid)((Button)sender).Parent).Children)
                 {
-                    itemName = ((TextBlock)objects).Text;
+                    if (objects is TextBlock)
+                    {
+                        itemName = ((TextBlock)objects).Text;
+                    }
                 }
-            }
 
-            // Remove item corresponding to itemId/itemName from database.
-            XmlTaskService.DeleteTask(itemName, "tasks.xml");
-            // Remove item corresponding to itemId/itemName from XML tables.
 
-            itemTable = MobileService.GetTable<Items>();
-         
-            
-            var myList1 = await itemTable.Where(itemabc => itemabc.Text == itemName).ToListAsync();
-            
-            try
-            {
-                await itemTable.DeleteAsync(myList1[0]);
+                // Remove item corresponding to itemId/itemName from database.
+                XmlTaskService.DeleteTask(itemName, "tasks.xml");
+                // Remove item corresponding to itemId/itemName from XML tables.
+
+                itemTable = MobileService.GetTable<Items>();
+
+                var parent = (ListBox)((Grid)((Button)sender).Parent).Parent;
+                parent.Items.Remove(((Grid)((Button)sender).Parent));
+                
+                
+                try
+                {
+
+                    var myList1 = await itemTable.Where(itemabc => itemabc.Id.ToString() == itemId).ToListAsync();
+
+                    await itemTable.DeleteAsync(myList1[0]);
+                    var uid = myList1[0].User_Id;
+                    var todoItem = new Notify
+                    {
+                        Message = user_name + " has bought " + itemName + " for you",
+                        Type = "",
+                        User_Id = uid
+                    };
+                    var notifyTable = MobileService.GetTable<Notify>();
+                    await notifyTable.InsertAsync(todoItem);
+               
+               
+                }
+                catch
+                {
+                    return;
+                }
+
+               
+
             }
-            catch
-            { }
-            
-            var parent = (ListBox)((Grid)((Button)sender).Parent).Parent;
-            parent.Items.Remove(((Grid)((Button)sender).Parent));
         }
 
 
@@ -671,6 +701,8 @@ namespace ShopperSoft
 
 		}
 
+ 
+
 		private async void Button_Tap_1(object sender, System.Windows.Input.GestureEventArgs e)
 		{
             // Create an instance of SpeechRecognizerUI.
@@ -682,6 +714,34 @@ namespace ShopperSoft
             // Do something with the recognition result.
             MessageBox.Show(string.Format("You said {0}.", recoResult.RecognitionResult.Text));
             NewItemTextBox.Text = recoResult.RecognitionResult.Text;
+        }
+
+        public async void AcquirePushChannel()
+        {
+            CurrentChannel = HttpNotificationChannel.Find("MyPushChannel");
+
+            if (CurrentChannel == null)
+            {
+                CurrentChannel = new HttpNotificationChannel("MyPushChannel");
+                CurrentChannel.Open();
+                CurrentChannel.BindToShellTile();
+            }
+
+            var uri = CurrentChannel.ChannelUri.ToString();
+
+            userTable = MobileService.GetTable<Users>();
+
+            if (settings.Contains("Pnumber"))
+            {
+                Users up = new Users();
+
+                up.uri = uri;
+                up.Id = user_id;
+                up.Name = user_name;
+                up.Phone_no = pnumber;
+
+                await userTable.UpdateAsync(up);
+            }
         }
 
     }

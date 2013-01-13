@@ -21,6 +21,9 @@ namespace ShopperSoft
     {
         private static MainViewModel viewModel = null;
 
+
+
+
         /// <summary>
         /// A static ViewModel used by the views to bind against.
         /// </summary>
