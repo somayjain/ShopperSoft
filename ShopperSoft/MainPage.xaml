@@ -24,7 +24,7 @@
 			<controls:PivotItem Header="User" Margin="0,10,0,1">
 				<Grid HorizontalAlignment="Left" Height="624" VerticalAlignment="Top" Width="480">
                     <watermark:WatermarkedTextBox Watermark="Add Item" x:Name="NewItemTextBox" HorizontalAlignment="Left" Height="72" TextWrapping="Wrap" VerticalAlignment="Top" Width="330"/>
-                    <Button HorizontalAlignment="Left" VerticalAlignment="Top" Margin="335,2,0,0" Width="70" BorderBrush="{x:Null}" Foreground="{x:Null}" RenderTransformOrigin="0.559,1.349" Height="70">
+                    <Button HorizontalAlignment="Left" VerticalAlignment="Top" Margin="335,2,0,0" Width="70" BorderBrush="{x:Null}" Foreground="{x:Null}" RenderTransformOrigin="0.559,1.349" Height="70" Tap="Button_Tap_1">
 								<Button.Background>
 									<ImageBrush ImageSource="/Assets/Icons/appbar.microphone.png" Stretch="None"/>
 								</Button.Background>

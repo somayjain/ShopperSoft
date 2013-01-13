@@ -21,6 +21,7 @@ using Microsoft.Phone.Net.NetworkInformation;
 
 using Microsoft.WindowsAzure.MobileServices;
 using Microsoft.Phone.Tasks;
+using Windows.Phone.Speech.Recognition;
 
 namespace ShopperSoft
 {
@@ -72,6 +73,7 @@ namespace ShopperSoft
             // Refresh to do item
             CheckNetworkAvailability();
             RefreshTodoItems();
+            RefreshTheirCart();
             DeviceNetworkInformation.NetworkAvailabilityChanged += new EventHandler<NetworkNotificationEventArgs>(NetworkChange);
               
             /////
@@ -171,7 +173,7 @@ namespace ShopperSoft
                 user_id = (int)settings["id"];
                 user_name = (string)settings["name"];
                 RefreshMyCart();
-				RefreshTheirCart();
+			//	RefreshTheirCart();
             }
             else
             {
@@ -520,25 +522,65 @@ namespace ShopperSoft
         }
 
 
-        private void FillFriendsInformation(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private async void FillFriendsInformation(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-        	// TODO: Add event handler implementation here.
+            // TODO: Add event handler implementation here.
             if (((Pivot)sender).SelectedIndex == 1)
             {
-                FriendsListPanel.Children.Clear();
+                MobileService = new MobileServiceClient(
+                  "https://shopappdata.azure-mobile.net/",
+                    "dkwwuiuHYYQwbozjKaWRJYYpEiTjFt73"
+             );
+      //          FriendsListPanel.Children.Clear();
 
-                var itemList = new Dictionary<int, String>();
-                itemList.Add(1, "Item 1");
-                itemList.Add(2, "Item 2");
-                itemList.Add(3, "Item 3");
-                itemList.Add(4, "Item 4");
-                itemList.Add(5, "Item 5");
+                relationsTable = MobileService.GetTable<Relations>();
 
-                AddFriendInformation("Akshet", 1, itemList);
-                AddFriendInformation("Akshet2", 2, itemList);
-                AddFriendInformation("Akshet3", 3, itemList);
-                AddFriendInformation("Akshet4", 4, itemList);
-                AddFriendInformation("Akshet5", 5, itemList);
+                
+                var myList1 = await relationsTable.Where(itemabc => itemabc.Id > -1 ).ToListAsync();
+
+                var myList2 = await relationsTable.Where(item2 => item2.Receiver_Id == user_id).ToListAsync();
+
+                Debug.WriteLine(myList1.Count);
+                Debug.WriteLine(myList2.Count);
+
+                List<int> userList = new List<int>();
+                //if (myList1 != null)
+                {
+                    foreach (var val in myList1)
+                    {
+                        Debug.WriteLine("1");
+                        userList.Add(val.Receiver_Id);
+                    }
+                }
+
+                if (myList2 != null)
+                {
+
+                    foreach (var val in myList2)
+                    {
+                        Debug.WriteLine("1");
+                        userList.Add(val.Sender_Id);
+                    }
+
+                }
+                itemTable = MobileService.GetTable<Items>();
+                foreach (var user in userList)
+                {
+                   var items= await itemTable.Where(user2 => ((user2.User_Id==user) && (user2.shared==true))  ).ToListAsync();
+                   var itemList = new Dictionary<int, String>();
+                   foreach(var item in items)
+                   {
+                       itemList.Add(item.Id, item.Text);
+                   }
+                   userTable = MobileService.GetTable<Users>();
+                   var list = await userTable.Where(user3 => (user3.Id == user)).ToListAsync();
+                   
+                   AddFriendInformation(list[0].Name, user, itemList);
+
+
+                }
+
+              
             }
 
         }
@@ -579,13 +621,16 @@ namespace ShopperSoft
 
                     Relations friend = new Relations();
                     friend.Receiver_Id= user_id;
-                    friend.Sender_Id = list[0].Id;
-                    friend.Status = 3;
+                    try
+                    {
+                        friend.Sender_Id = list[0].Id;
+                        friend.Status = 3;
 
-                    relationsTable = MobileService.GetTable<Relations>();
+                        relationsTable = MobileService.GetTable<Relations>();
 
-                    await relationsTable.UpdateAsync(friend);
-
+                        await relationsTable.InsertAsync(friend);
+                    }
+                    catch { }
 
 
                 }
@@ -624,29 +669,57 @@ namespace ShopperSoft
                 Debug.WriteLine("Refresh their");
 
                 
-                relationsTable = MobileService.GetTable<Relations>();
-                var myList1 = await relationsTable.Where(item2 => ((user_id == item2.Sender_Id) && (item2.Status == 3))).ToListAsync();
+                 relationsTable = MobileService.GetTable<Relations>();
+                var myList1 = await relationsTable.Where(item2 => (( item2.Sender_Id== user_id) && (item2.Status == 3))).ToListAsync();
        
-                var myList2 = await relationsTable.Where(item2 => ((user_id == item2.Receiver_Id) && (item2.Status == 3))).ToListAsync();
+                var myList2 = await relationsTable.Where(item2 => ((item2.Receiver_Id == user_id) && (item2.Status == 3))).ToListAsync();
 
                 List<int> userList= new List<int>();
                 foreach (var val in myList1)
                 {
+                    Debug.WriteLine("Refresh their");
                     userList.Add(val.Receiver_Id);
                 }
                 foreach (var val in myList2)
                 {
+                    Debug.WriteLine("Refresh their2");
                     userList.Add(val.Sender_Id);
                 }
 
                 itemTable = MobileService.GetTable<Items>();
+
+                List<Items> final = new List<Items>();
+                var tempList= new List<Items>();
                 foreach(var val in userList)
                 {
-           //         await itemTable.Where(item2 => ((user_id == item2.Receiver_Id) && (item2.Status == 3))).ToListAsync();
+                    Debug.WriteLine("Refresh their3");
+                    tempList = await itemTable.Where(item2 => item2.User_Id == val).ToListAsync();
+                    foreach(var val2 in tempList)
+                    {
+                        final.Add(val2);
+                    }
                 }
+                foreach (Items buffitem in final)
+                {
+                    AddNewItemToBuyGrid(buffitem.Text, buffitem.Id);
+                }
+			
              }
 
 		}
+
+		private async void Button_Tap_1(object sender, System.Windows.Input.GestureEventArgs e)
+		{
+            // Create an instance of SpeechRecognizerUI.
+            var recoWithUI = new SpeechRecognizerUI();
+
+            // Start recognition (load the dictation grammar by default).
+            SpeechRecognitionUIResult recoResult = await recoWithUI.RecognizeWithUIAsync();
+
+            // Do something with the recognition result.
+            MessageBox.Show(string.Format("You said {0}.", recoResult.RecognitionResult.Text));
+            NewItemTextBox.Text = recoResult.RecognitionResult.Text;
+        }
 
     }
 }
