@@ -23,15 +23,5 @@ namespace ShopperSoft.Model
         [DataMember(Name = "complete")]
         public bool Complete { get; set; }
     }
-    public class Descreption
-    {
-        public int Id { get; set; }
-
-        [DataMember(Name = "name")]
-        public string Name { get; set; }
-
-        [DataMember(Name = "foreign")]
-
-        public int foreign { get; set; }
-    }
+    
 }

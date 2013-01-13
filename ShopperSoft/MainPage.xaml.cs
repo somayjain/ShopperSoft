@@ -12,20 +12,128 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Diagnostics;
+
+using System.IO.IsolatedStorage;
+using System.Collections.ObjectModel;
+using ShopperSoft.Model;
+using Microsoft.Phone.Net.NetworkInformation;
+
+using Microsoft.WindowsAzure.MobileServices;
 
 namespace ShopperSoft
 {
     public partial class MainPage : PhoneApplicationPage
     {
+        /* variables imported */
+        private MobileServiceCollectionView<TodoItem> items;
+
+        public ObservableCollection<TodoItem> retreive = new ObservableCollection<TodoItem>();
+        public ObservableCollection<TodoItem> retreive2 = new ObservableCollection<TodoItem>();
+        private ObservableCollection<TodoItem> buffer = new ObservableCollection<TodoItem>();
+
+    //    public static TodoItem local;
+        public static TodoItem checked_item;
+        public static TodoItem local = new TodoItem();
+
+        public static MobileServiceClient MobileService;
+        private static IMobileServiceTable<TodoItem> todoTable;
+
+        IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;
+
+        public string pnumber;
+
+        static bool online;
+    
         // Constructor
         public MainPage()
         {
             InitializeComponent();
-
+            /////
+             
+            InitializeSettings();
+            // TODO:
+            // Refresh to do item
+            CheckNetworkAvailability();
+            RefreshTodoItems();
+            DeviceNetworkInformation.NetworkAvailabilityChanged += new EventHandler<NetworkNotificationEventArgs>(NetworkChange);
+              
+            /////
             // Set the data context of the listbox control to the sample data
             DataContext = App.ViewModel;
             this.Loaded +=new RoutedEventHandler(MainPage_Loaded);
         }
+        
+        private void InitializeSettings()
+        {
+            // TODO : improve 
+            if (settings.Contains("Pnumber"))
+            {
+                pnumber = (string)settings["Pnumber"];
+            }
+     //
+//            else settings.Add("emailFlag", false);
+        }
+
+         private void NetworkChange(object sender, NetworkNotificationEventArgs e)
+        {
+            CheckNetworkAvailability();
+        }
+        private async void CheckNetworkAvailability()
+        {
+            online = NetworkInterface.NetworkInterfaceType.ToString()!="None";
+ 
+            Debug.WriteLine(online);
+            if (online)
+            {
+                // Connect to Azure 
+
+                //TODO Change link
+                MobileService = new MobileServiceClient(
+                     "https://saaman.azure-mobile.net/", 
+                       "BPWiwYHRGotSjuciwiTyBSHwDnZNvj71"
+                );
+                todoTable = MobileService.GetTable<TodoItem>();
+                
+                // Add buffer items in tasks
+                buffer = XmlTaskService.GetTasks("buffer.xml");
+                foreach (TodoItem buffitem in buffer)
+                {
+                    try
+                    {
+                        await todoTable.InsertAsync(buffitem);
+                        XmlTaskService.CreateTask(buffitem, "tasks.xml");
+                    }
+                    catch
+                    {
+
+                    }
+                }
+                XmlTaskService.DeleteAllTasks("buffer.xml");
+                buffer.Clear();
+
+
+                //TODO : Handle this 
+                // Transfer Checked properties
+                buffer = XmlTaskService.GetTasks("checked.xml");
+                foreach (TodoItem buffitem in buffer)
+                {
+                    checked_item = XmlTaskService.GetTasksByText(buffitem.Text, "tasks.xml");
+                    checked_item.Complete = true;
+                    try
+                    {
+                        await todoTable.UpdateAsync(checked_item);
+                    }
+                    catch
+                    {
+                    }
+                }
+                XmlTaskService.DeleteAllTasks("checked.xml");
+                buffer.Clear();
+            }
+        }
+
+
 
         // Load data for the ViewModel Items
         private void MainPage_Loaded(object sender, RoutedEventArgs e)
@@ -172,14 +280,33 @@ namespace ShopperSoft
             }
         }
 
-        private void AddNewItem(object sender, System.Windows.Input.GestureEventArgs e)
+        private async void AddNewItem(object sender, System.Windows.Input.GestureEventArgs e)
         {
             var itemName = NewItemTextBox.Text;
             NewItemTextBox.Text = "";
 
             // TODO: Add item to database.
-            int itemId = 0; // REMOVE THIS
+            
 
+            local.Id = 0;        
+            local.Text = itemName;
+ //           local.Complete = todoItem.Complete;
+
+            if (online)
+            {
+                await todoTable.InsertAsync(local);
+            }
+
+            if (!online)
+            {
+                XmlTaskService.CreateTask(local, "buffer.xml");
+            }
+            else
+            {
+                XmlTaskService.CreateTask(local, "tasks.xml");
+            }
+          //  int itemId = 0;// REMOVE THIS
+            int itemId = local.Id;
             /*
              * <insert item to database>
              * var itemId = <GetFromDatabase>
@@ -223,6 +350,21 @@ namespace ShopperSoft
                 AddFriendInformation("Akshet5", 5, itemList);
             }
 
+        }
+        private void RefreshTodoItems()
+        {
+
+            retreive = XmlTaskService.GetTasks("tasks.xml");
+            retreive2 = XmlTaskService.GetTasks("buffer.xml");
+            foreach (TodoItem buffitem in retreive)
+            {
+                AddNewItemToItemGrid(buffitem.Text, buffitem.Id);
+            }
+            foreach (TodoItem buffitem in retreive2)
+            {
+                AddNewItemToItemGrid(buffitem.Text, buffitem.Id);
+            }
+            
         }
     }
 }

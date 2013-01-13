@@ -13,6 +13,8 @@ using System.Windows.Shapes;
 using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
 
+using Microsoft.WindowsAzure.MobileServices;
+
 namespace ShopperSoft
 {
     public partial class App : Application
