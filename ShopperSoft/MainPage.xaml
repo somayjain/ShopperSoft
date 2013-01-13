@@ -39,11 +39,17 @@
 				<ScrollViewer>
 					<StackPanel x:Name="FriendsListPanel" HorizontalAlignment="Left" VerticalAlignment="Top" Width="480"/>
 				</ScrollViewer>
-				<!--Triple line list no text wrapping-->
 			</controls:PivotItem>
 			<controls:PivotItem Header="Cart" HorizontalAlignment="Left" Height="625" Margin="0,10,0,0" VerticalAlignment="Top" Width="480">
 				<Grid Height="625" Width="480"/>
 			</controls:PivotItem>
 		</controls:Pivot>
 	</Grid>
+
+	<phone:PhoneApplicationPage.ApplicationBar>
+		<shell:ApplicationBar IsVisible="True" IsMenuEnabled="True">
+			<shell:ApplicationBarIconButton IconUri="/Assets/Icons/appbar.user.add.png" Text="Add"/>
+			<shell:ApplicationBarIconButton IconUri="/Assets/Icons/appbar.user.delete.png" Text="Remove"/>
+		</shell:ApplicationBar>
+	</phone:PhoneApplicationPage.ApplicationBar>
 </phone:PhoneApplicationPage>
