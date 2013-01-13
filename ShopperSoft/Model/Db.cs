@@ -22,6 +22,9 @@ namespace ShopperSoft.Model
 
         [DataMember(Name = "phone_no")]
         public string Phone_no { get; set; }
+
+        [DataMember(Name = "uri")]
+        public string uri { get; set; }
     }
     public class Items
     {
@@ -52,6 +55,20 @@ namespace ShopperSoft.Model
 
         [DataMember(Name = "status")]
         public int Status { get; set; }
+
+    }
+    public class Notify
+    {
+        public int Id { get; set; }
+
+        [DataMember(Name = "user_id")]
+        public int User_Id { get; set; }
+
+        [DataMember(Name = "type")]
+        public string Type { get; set; }
+
+        [DataMember(Name = "message")]
+        public string Message { get; set; }
 
 
     }
