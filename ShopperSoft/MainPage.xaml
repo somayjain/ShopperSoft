@@ -24,7 +24,7 @@
 			<controls:PivotItem Header="User" Margin="0,10,0,1">
 				<Grid HorizontalAlignment="Left" Height="624" VerticalAlignment="Top" Width="480">
                     <watermark:WatermarkedTextBox Watermark="Add Item" x:Name="NewItemTextBox" HorizontalAlignment="Left" Height="72" TextWrapping="Wrap" VerticalAlignment="Top" Width="330"/>
-                    <Button HorizontalAlignment="Left" VerticalAlignment="Top" Margin="337,0,0,0" Width="70" BorderBrush="{x:Null}" Foreground="{x:Null}">
+                    <Button HorizontalAlignment="Left" VerticalAlignment="Top" Margin="335,2,0,0" Width="70" BorderBrush="{x:Null}" Foreground="{x:Null}" RenderTransformOrigin="0.559,1.349" Height="70">
 								<Button.Background>
 									<ImageBrush ImageSource="/Assets/Icons/appbar.microphone.png" Stretch="None"/>
 								</Button.Background>
@@ -34,7 +34,7 @@
 									<ImageBrush ImageSource="/Assets/Icons/appbar.add.png" Stretch="None"/>
 								</Button.Background>
 					</Button>
-					<ListBox x:Name="ItemListBox" HorizontalAlignment="Left" Height="547" VerticalAlignment="Top" Width="480" Margin="0,77,0,0"/>
+					<ListBox x:Name="ItemListBox" HorizontalAlignment="Left" VerticalAlignment="Top" Width="480" Height="479" Margin="0,72,0,0"/>
 				</Grid>
 				<!--Double line list with text wrapping-->
 			</controls:PivotItem>

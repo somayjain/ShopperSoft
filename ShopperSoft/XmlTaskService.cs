@@ -265,18 +265,21 @@ namespace ShopperSoft
             return WriteXml(doc, XmlFile);
         }
 
-        public static bool DeleteTask(string id, string XmlFile)
+        public static bool DeleteTask(string text, string XmlFile)
         {
             XDocument doc = ReadXml(XmlFile);
 
-            foreach (var ele in doc.Descendants())
+            foreach (XElement ele in doc.Descendants("task"))
             {
-                if (ele != null && (string)ele.Attribute("id") == id)
+
+                if (ele != null && (ele.Element("Text").Value) == text)
                 {
                     ele.Remove();
                     break;
                 }
             }
+
+            
             return WriteXml(doc, XmlFile);
         }
     }

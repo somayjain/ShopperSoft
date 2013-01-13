@@ -109,15 +109,13 @@ namespace ShopperSoft
                 buffer.Clear();
 
 
-                //TODO : Handle this 
-                // Transfer Checked properties
                 buffer = XmlTaskService.GetTasks("checked.xml");
                 foreach (Items buffitem in buffer)
                 {
-                    Debug.WriteLine(buffitem.Id); Debug.WriteLine(buffitem.Text);
-                    checked_item = XmlTaskService.GetTasksById(buffitem.Id, "tasks.xml");
+                    Debug.WriteLine("Item is "); Debug.WriteLine(buffitem.Text) ;
+                    checked_item = XmlTaskService.GetTasksByText(buffitem.Text, "tasks.xml");
                     checked_item.shared = true;
-                    Debug.WriteLine(checked_item.Id); Debug.WriteLine(checked_item.Text);
+                    Debug.WriteLine("checked"); Debug.WriteLine(checked_item.Text);
                     try
                     {
                         await itemTable.UpdateAsync(checked_item);
@@ -127,6 +125,21 @@ namespace ShopperSoft
                     }
                 }
                 XmlTaskService.DeleteAllTasks("checked.xml");
+                buffer.Clear();
+
+                buffer = XmlTaskService.GetTasks("delete.xml");
+                foreach (Items buffitem in buffer)
+                {
+                    checked_item = XmlTaskService.GetTasksByText(buffitem.Text, "tasks.xml");
+                    try
+                    {
+                        await itemTable.DeleteAsync(checked_item);
+                    }
+                    catch
+                    {
+                    }
+                }
+                XmlTaskService.DeleteAllTasks("delete.xml");
                 buffer.Clear();
             }
         }
@@ -327,47 +340,59 @@ namespace ShopperSoft
 
         private async void ShareItemWithFriends(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            var itemId = ((Button)sender).Tag.ToString();
+
+            string itemName="";
+            
 
             foreach (var objects in ((Grid)((Button)sender).Parent).Children) {
                 if (objects is TextBlock)
                 {
-                    var itemName = ((TextBlock)objects).Text;
+                    itemName = ((TextBlock)objects).Text;
                 }
             }
-
-           var ads = ((Button)sender).DataContext.ToString();
-           Debug.WriteLine(ads);
-           Debug.WriteLine(((Button)sender).FindName("Text") ); 
 
             Items item = new Items();
             
             if (online)
             {
-                item = XmlTaskService.GetTasksById(int.Parse(itemId), "tasks.xml");
+                item = XmlTaskService.GetTasksByText(itemName, "tasks.xml");
                 item.shared = true;
                 await itemTable.UpdateAsync(item);
             }
             else
             {
-                item.Id = int.Parse(itemId);
-                // Bogus Values
-                item.complete = false;
-                item.shared = true;
-                item.Text = "fs";
-                item.User_Id = 0;
-                Debug.WriteLine("adding");
-                Debug.WriteLine(item.Id);
+                item = XmlTaskService.GetTasksByText(itemName, "tasks.xml");
+                item.Text = itemName;
                 XmlTaskService.CreateTask(item, "checked.xml");
             }
         	// TODO: Use item id to set the share flag to true in the database
         }
 
-        private void DeleteItem(object sender, System.Windows.Input.GestureEventArgs e)
+        private async void DeleteItem(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            var itemId = ((Button)sender).Tag.ToString();
-
-        	// TODO: Use item id to remove the item form database
+            string itemName = "";
+            Items item = new Items();
+            
+            foreach (var objects in ((Grid)((Button)sender).Parent).Children)
+            {
+                if (objects is TextBlock)
+                {
+                    itemName = ((TextBlock)objects).Text;
+                }
+            }
+            if (online)
+            {
+                item = XmlTaskService.GetTasksByText(itemName, "tasks.xml");
+                await itemTable.DeleteAsync(item);
+                XmlTaskService.DeleteTask(itemName, "tasks.xml");
+                RefreshTodoItems();
+            }
+            else
+            {
+                item = XmlTaskService.GetTasksByText(itemName, "tasks.xml");
+                XmlTaskService.CreateTask(item, "delete.xml");
+            }
+            // TODO: Use item id to remove the item form database
         }
 
         private void FillFriendsInformation(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
