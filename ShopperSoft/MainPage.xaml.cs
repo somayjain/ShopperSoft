@@ -68,23 +68,13 @@ namespace ShopperSoft
         
         private void InitializeSettings()
         {
-            // TODO : improve 
-            if (settings.Contains("Pnumber"))
-            {
-                pnumber = (string)settings["Pnumber"];
-                user_id = (int)settings["id"];
-                user_name = (string)settings["name"];
-            }
-            else
-            {
-                NavigationService.Navigate(new Uri("/Login.xaml", UriKind.Relative));
-            }
         }
 
-         private void NetworkChange(object sender, NetworkNotificationEventArgs e)
+        private void NetworkChange(object sender, NetworkNotificationEventArgs e)
         {
             CheckNetworkAvailability();
         }
+
         private async void CheckNetworkAvailability()
         {
             online = NetworkInterface.NetworkInterfaceType.ToString()!="None";
@@ -144,6 +134,18 @@ namespace ShopperSoft
         // Load data for the ViewModel Items
         private void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
+            // TODO : improve 
+            if (settings.Contains("Pnumber"))
+            {
+                pnumber = (string)settings["Pnumber"];
+                user_id = (int)settings["id"];
+                user_name = (string)settings["name"];
+            }
+            else
+            {
+                ((PhoneApplicationFrame)Application.Current.RootVisual).Navigate(new Uri("/Login.xaml", UriKind.Relative));
+            }
+
             if (!App.ViewModel.IsDataLoaded)
             {
                 App.ViewModel.LoadData();
