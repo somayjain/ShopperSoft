@@ -39,9 +39,6 @@ namespace ShopperSoft
 
         public static MobileServiceClient MobileService;
         private static IMobileServiceTable<Items> itemTable;
-
-        private static IMobileServiceTable<Relations> relationsTable;
-        public static Relations relation = new Relations();
        
         private static IMobileServiceTable<Users> userTable;
         public static Users user = new Users();
@@ -54,7 +51,15 @@ namespace ShopperSoft
 
         public static bool online;
 
+
+
+
+        private static IMobileServiceTable<Relations> relationsTable;
+        private MobileServiceCollectionView<Relations> relation;
+
         PhoneNumberChooserTask phoneNumberChooserTask;
+
+
 
         // Constructor
         public MainPage()
@@ -165,6 +170,8 @@ namespace ShopperSoft
                 pnumber = (string)settings["Pnumber"];
                 user_id = (int)settings["id"];
                 user_name = (string)settings["name"];
+                RefreshMyCart();
+				RefreshTheirCart();
             }
             else
             {
@@ -178,6 +185,7 @@ namespace ShopperSoft
 
             phoneNumberChooserTask = new PhoneNumberChooserTask();
             phoneNumberChooserTask.Completed += new EventHandler<PhoneNumberResult>(phoneNumberChooserTask_Completed);
+
         }
 
 		private void AddNewItemToItemGrid(String itemLabel, int itemId, bool shared) {
@@ -260,6 +268,88 @@ namespace ShopperSoft
 
             ItemListBox.Items.Add(newGrid);
 		}
+
+
+
+		
+		// Buy  wala
+		private void AddNewItemToBuyGrid(String itemLabel, int itemId) {
+			var newGrid = new Grid();
+            newGrid.Tag = itemId.ToString();
+            newGrid.Height = 70;
+            newGrid.VerticalAlignment = VerticalAlignment.Top;
+            newGrid.Width = 480;
+
+            var linearGradient = new LinearGradientBrush();
+            linearGradient.EndPoint = new Point(0.5, 1);
+            linearGradient.StartPoint = new Point(0.5, 0);
+
+            var gradientStop = new GradientStop();
+            gradientStop.Color = Colors.Black;
+            gradientStop.Offset = 0;
+            linearGradient.GradientStops.Add(gradientStop);
+
+            gradientStop = new GradientStop();
+            var color = new Color();
+            color.A = 255;
+            color.R = 38;
+            color.G = 38;
+            color.B = 38;
+            gradientStop.Color = color;
+            gradientStop.Offset = 1;
+            linearGradient.GradientStops.Add(gradientStop);
+
+            newGrid.Background = linearGradient;
+
+            var textBlock = new TextBlock();
+            textBlock.Text = itemLabel;
+            textBlock.HorizontalAlignment = HorizontalAlignment.Left;
+            textBlock.TextWrapping = TextWrapping.Wrap;
+            textBlock.Width = 310;
+            textBlock.FontSize = 32;
+            textBlock.Margin = new Thickness(0);
+            textBlock.Padding = new Thickness(15, 9, 0, 0);
+/*
+            var button = new Button();
+            button.Tag = itemId.ToString();
+            button.Margin = new Thickness(315, 0, 85, 0);
+            button.BorderThickness = new Thickness(0);
+            button.BorderBrush = null;
+            button.Foreground = null;
+            button.Tap += ShareItemWithFriends;
+
+            var imageBrush = new ImageBrush();
+            imageBrush.ImageSource = new BitmapImage(new Uri(@"\Assets\Icons\appbar.cloud.upload.png", UriKind.Relative));
+            imageBrush.Stretch = Stretch.None;
+
+            button.Background = imageBrush;
+            */
+            var button2 = new Button();
+            button2.Tag = itemId.ToString();
+            button2.Margin = new Thickness(400, 0, 0, 0);
+            button2.BorderThickness = new Thickness(0);
+            button2.BorderBrush = null;
+            button2.Foreground = null;
+            button2.Tap += BuyItem;
+
+            var imageBrush2 = new ImageBrush();
+            imageBrush2.ImageSource = new BitmapImage(new Uri(@"\Assets\Icons\appbar.cart.png", UriKind.Relative));
+            imageBrush2.Stretch = Stretch.None;
+
+            button2.Background = imageBrush2;
+
+            newGrid.Children.Add(textBlock);
+//            newGrid.Children.Add(button);
+            newGrid.Children.Add(button2);
+
+            ItemBuyBox.Items.Add(newGrid);
+		}
+
+		
+		
+		
+		
+		
 
         private void AddFriendInformation(String friendName, int friendId, Dictionary<int, String> itemList)
         {
@@ -407,7 +497,7 @@ namespace ShopperSoft
 
             var parent = (ListBox)((Grid)((Button)sender).Parent).Parent;
             parent.Items.Remove(((Grid)((Button)sender).Parent));
-            
+
             if (online)
             {
                 item = XmlTaskService.GetTasksByText(itemName, "tasks.xml");
@@ -422,6 +512,13 @@ namespace ShopperSoft
             }
             // TODO: Use item id to remove the item form database
         }
+
+        // Function to buy item
+        private async void BuyItem(object sender, System.Windows.Input.GestureEventArgs e)
+        {
+
+        }
+
 
         private void FillFriendsInformation(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -466,7 +563,9 @@ namespace ShopperSoft
             phoneNumberChooserTask.Show();
         }
 
-        private void phoneNumberChooserTask_Completed(object sender, PhoneNumberResult e)
+
+        private async void phoneNumberChooserTask_Completed(object sender, PhoneNumberResult e)
+
         {
             if (online)
             {
@@ -474,14 +573,80 @@ namespace ShopperSoft
                 {
                     MessageBox.Show("Adding " + e.DisplayName + " with phone no. " + e.PhoneNumber + " as friend. Press ok to continue");
 
-                    userTable = MobileService.GetTable<Users>();
-                    foreach (var item in userTable.Where(user2 => user2.Phone_no == e.PhoneNumber).ToCollectionView())
-                    {
-                        System.Diagnostics.Debug.WriteLine(item);
-                    }
+
+                    var userTable = MobileService.GetTable<Users>();
+                    var list = await userTable.Where(user2 => user2.Phone_no == e.PhoneNumber).ToListAsync();
+
+                    Relations friend = new Relations();
+                    friend.Receiver_Id= user_id;
+                    friend.Sender_Id = list[0].Id;
+                    friend.Status = 3;
+
+                    relationsTable = MobileService.GetTable<Relations>();
+
+                    await relationsTable.UpdateAsync(friend);
+
+
+
                 }
 
             }
         }
+
+
+		private void RefreshMyCart()
+		{
+            retreive = XmlTaskService.GetTasks("tasks.xml");
+            retreive2 = XmlTaskService.GetTasks("buffer.xml");
+            foreach (Items buffitem in retreive)
+            {
+                AddNewItemToBuyGrid(buffitem.Text, buffitem.Id);
+            }
+            foreach (Items buffitem in retreive2)
+            {
+                AddNewItemToBuyGrid(buffitem.Text, buffitem.Id);
+            }
+			// Drawing Rectangle
+
+            var Rectangle = new Rectangle();
+            Rectangle.Height = 10;
+            Rectangle.Width = 480;
+            
+            Rectangle.Fill = new SolidColorBrush(System.Windows.Media.Colors.LightGray);
+
+            ItemBuyBox.Items.Add(Rectangle);
+
+        }
+		private async void RefreshTheirCart()
+		{
+            if(online)
+            {
+                Debug.WriteLine("Refresh their");
+
+                
+                relationsTable = MobileService.GetTable<Relations>();
+                var myList1 = await relationsTable.Where(item2 => ((user_id == item2.Sender_Id) && (item2.Status == 3))).ToListAsync();
+       
+                var myList2 = await relationsTable.Where(item2 => ((user_id == item2.Receiver_Id) && (item2.Status == 3))).ToListAsync();
+
+                List<int> userList= new List<int>();
+                foreach (var val in myList1)
+                {
+                    userList.Add(val.Receiver_Id);
+                }
+                foreach (var val in myList2)
+                {
+                    userList.Add(val.Sender_Id);
+                }
+
+                itemTable = MobileService.GetTable<Items>();
+                foreach(var val in userList)
+                {
+           //         await itemTable.Where(item2 => ((user_id == item2.Receiver_Id) && (item2.Status == 3))).ToListAsync();
+                }
+             }
+
+		}
+
     }
 }
