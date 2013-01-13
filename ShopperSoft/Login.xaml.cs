@@ -12,6 +12,8 @@ namespace ShopperSoft
 {
     public partial class Login : PhoneApplicationPage
     {
+        public string username;
+        public string phoneNo;
         public Login()
         {
             InitializeComponent();
@@ -19,8 +21,8 @@ namespace ShopperSoft
 
         private void PerformUserLogin(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            var username = userName.Text;
-            var phoneno = userPhone.Text;
+            username = userName.Text;
+            phoneno = userPhone.Text;
 
             // TODO: send this username and phoneno. to be added into the database
 
