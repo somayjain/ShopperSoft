@@ -39,13 +39,13 @@ namespace ShopperSoft
         public static MobileServiceClient MobileService;
         private static IMobileServiceTable<Items> itemTable;
 
-        IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;
+        public static IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;
 
         public string pnumber;
         public int user_id;
         public string user_name;
 
-        static bool online;
+        public static bool online;
     
         // Constructor
         public MainPage()
@@ -134,6 +134,7 @@ namespace ShopperSoft
         // Load data for the ViewModel Items
         private void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
+            CheckNetworkAvailability();
             // TODO : improve 
             if (settings.Contains("Pnumber"))
             {
