@@ -16,5 +16,15 @@ namespace ShopperSoft
         {
             InitializeComponent();
         }
+
+        private void PerformUserLogin(object sender, System.Windows.Input.GestureEventArgs e)
+        {
+            var username = userName.Text;
+            var phoneno = userPhone.Text;
+
+            // TODO: send this username and phoneno. to be added into the database
+
+            NavigationService.Navigate(new Uri("/MainPage.xaml", UriKind.Relative));
+        }
     }
 }

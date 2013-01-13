@@ -77,9 +77,7 @@ namespace ShopperSoft
             }
             else
             {
-                // TODO : Navigate to credential screen
-                // Add user to table(online, offline).
-                // Add user to storage
+                NavigationService.Navigate(new Uri("/Login.xaml", UriKind.Relative));
             }
         }
 

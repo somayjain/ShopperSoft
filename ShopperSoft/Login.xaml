@@ -32,7 +32,7 @@
         <Grid x:Name="ContentPanel" Grid.Row="1" Margin="0,10,0,0">
         	<watermark:WatermarkedTextBox Watermark="Your Name" x:Name="userName" Height="72" TextWrapping="Wrap" VerticalAlignment="Top" Width="395" Margin="0,10,0,0" HorizontalAlignment="Center"/>
         	<watermark:WatermarkedTextBox Watermark="Your Phone No." x:Name="userPhone" Height="72" TextWrapping="Wrap" VerticalAlignment="Top" Width="395" Margin="0,87,0,0" HorizontalAlignment="Center"/>
-        	<Button Content="Login" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,256,0,0" Height="90" Width="200"/>
+        	<Button Content="Login" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,256,0,0" Height="90" Width="200" Tap="PerformUserLogin"/>
         </Grid>
     </Grid>
 
