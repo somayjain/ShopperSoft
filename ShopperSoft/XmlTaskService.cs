@@ -180,7 +180,7 @@ namespace ShopperSoft
                     doc.Element("tasks").Add(
                         new XElement("task",
                                      new XElement("Text", t.Text),
-                                     new XElement("shared", "false"),
+                                     new XElement("shared", t.shared),
                                      new XElement("Id", t.Id),
                                      new XElement("User_Id", t.User_Id),
                                      new XElement("complete", "false")

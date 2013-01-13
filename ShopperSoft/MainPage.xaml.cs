@@ -20,6 +20,7 @@ using ShopperSoft.Model;
 using Microsoft.Phone.Net.NetworkInformation;
 
 using Microsoft.WindowsAzure.MobileServices;
+using Microsoft.Phone.Tasks;
 
 namespace ShopperSoft
 {
@@ -39,6 +40,12 @@ namespace ShopperSoft
         public static MobileServiceClient MobileService;
         private static IMobileServiceTable<Items> itemTable;
 
+        private static IMobileServiceTable<Relations> relationsTable;
+        public static Relations relation = new Relations();
+       
+        private static IMobileServiceTable<Users> userTable;
+        public static Users user = new Users();
+
         public static IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;
 
         public string pnumber;
@@ -46,7 +53,9 @@ namespace ShopperSoft
         public string user_name;
 
         public static bool online;
-    
+
+        PhoneNumberChooserTask phoneNumberChooserTask;
+
         // Constructor
         public MainPage()
         {
@@ -166,9 +175,12 @@ namespace ShopperSoft
             {
                 App.ViewModel.LoadData();
             }
+
+            phoneNumberChooserTask = new PhoneNumberChooserTask();
+            phoneNumberChooserTask.Completed += new EventHandler<PhoneNumberResult>(phoneNumberChooserTask_Completed);
         }
 
-		private void AddNewItemToItemGrid(String itemLabel, int itemId) {
+		private void AddNewItemToItemGrid(String itemLabel, int itemId, bool shared) {
 			var newGrid = new Grid();
             newGrid.Tag = itemId.ToString();
             newGrid.Height = 70;
@@ -208,10 +220,19 @@ namespace ShopperSoft
             var button = new Button();
             button.Tag = itemId.ToString();
             button.Margin = new Thickness(315, 0, 85, 0);
-            button.BorderThickness = new Thickness(0);
+            button.BorderThickness = new Thickness(2);
             button.BorderBrush = null;
             button.Foreground = null;
-            button.Tap += ShareItemWithFriends;
+
+            if (shared == false)
+            {
+                button.Tap += ShareItemWithFriends;
+            }
+            else
+            {
+                var solidBrush = new SolidColorBrush(Colors.Green);
+                button.BorderBrush = solidBrush;
+            }
 
             var imageBrush = new ImageBrush();
             imageBrush.ImageSource = new BitmapImage(new Uri(@"\Assets\Icons\appbar.cloud.upload.png", UriKind.Relative));
@@ -242,14 +263,6 @@ namespace ShopperSoft
 
         private void AddFriendInformation(String friendName, int friendId, Dictionary<int, String> itemList)
         {
-            /*
-                <TextBlock TextWrapping="Wrap" Text="Friend Name 1" Height="70" Foreground="White" Padding="20,10,0,0" FontSize="32">
-                </TextBlock>
-                <StackPanel Height="552" ScrollViewer.VerticalScrollBarVisibility="Auto">
-                    <TextBlock TextWrapping="Wrap" Text="Item 1" Height="48" FontSize="24" Padding="35,5,0,0"/>
-                </StackPanel>
-            */
-
             var textBlock = new TextBlock();
             textBlock.TextWrapping = TextWrapping.Wrap;
             textBlock.Text = friendName;
@@ -335,7 +348,7 @@ namespace ShopperSoft
              * var itemId = <GetFromDatabase>
              */
 
-            AddNewItemToItemGrid(itemName, itemId);
+            AddNewItemToItemGrid(itemName, itemId, false);
         }
 
         private async void ShareItemWithFriends(object sender, System.Windows.Input.GestureEventArgs e)
@@ -351,13 +364,24 @@ namespace ShopperSoft
                 }
             }
 
+            var solidBrush = new SolidColorBrush(Colors.Green);
+            ((Button)sender).BorderBrush = solidBrush;
+            ((Button)sender).Tap -= ShareItemWithFriends;
+
+
             Items item = new Items();
             
             if (online)
             {
                 item = XmlTaskService.GetTasksByText(itemName, "tasks.xml");
+                XmlTaskService.DeleteTask(item.Text, "tasks.xml");
+
                 item.shared = true;
+                XmlTaskService.CreateTask(item, "tasks.xml");
+
                 await itemTable.UpdateAsync(item);
+
+                item = XmlTaskService.GetTasksByText(itemName, "tasks.xml");
             }
             else
             {
@@ -380,6 +404,10 @@ namespace ShopperSoft
                     itemName = ((TextBlock)objects).Text;
                 }
             }
+
+            var parent = (ListBox)((Grid)((Button)sender).Parent).Parent;
+            parent.Items.Remove(((Grid)((Button)sender).Parent));
+            
             if (online)
             {
                 item = XmlTaskService.GetTasksByText(itemName, "tasks.xml");
@@ -417,20 +445,43 @@ namespace ShopperSoft
             }
 
         }
+
         private void RefreshTodoItems()
         {
-
             retreive = XmlTaskService.GetTasks("tasks.xml");
             retreive2 = XmlTaskService.GetTasks("buffer.xml");
             foreach (Items buffitem in retreive)
             {
-                AddNewItemToItemGrid(buffitem.Text, buffitem.Id);
+                AddNewItemToItemGrid(buffitem.Text, buffitem.Id, buffitem.shared);
             }
             foreach (Items buffitem in retreive2)
             {
-                AddNewItemToItemGrid(buffitem.Text, buffitem.Id);
+                AddNewItemToItemGrid(buffitem.Text, buffitem.Id, buffitem.shared);
             }
             
+        }
+
+        private void AddNewFriend(object sender, System.EventArgs e)
+        {
+            phoneNumberChooserTask.Show();
+        }
+
+        private void phoneNumberChooserTask_Completed(object sender, PhoneNumberResult e)
+        {
+            if (online)
+            {
+                if (e.TaskResult == TaskResult.OK)
+                {
+                    MessageBox.Show("Adding " + e.DisplayName + " with phone no. " + e.PhoneNumber + " as friend. Press ok to continue");
+
+                    userTable = MobileService.GetTable<Users>();
+                    foreach (var item in userTable.Where(user2 => user2.Phone_no == e.PhoneNumber).ToCollectionView())
+                    {
+                        System.Diagnostics.Debug.WriteLine(item);
+                    }
+                }
+
+            }
         }
     }
 }
