@@ -26,22 +26,24 @@ namespace ShopperSoft
     public partial class MainPage : PhoneApplicationPage
     {
         /* variables imported */
-        private MobileServiceCollectionView<TodoItem> items;
+        private MobileServiceCollectionView<Items> items;
 
-        public ObservableCollection<TodoItem> retreive = new ObservableCollection<TodoItem>();
-        public ObservableCollection<TodoItem> retreive2 = new ObservableCollection<TodoItem>();
-        private ObservableCollection<TodoItem> buffer = new ObservableCollection<TodoItem>();
+        public ObservableCollection<Items> retreive = new ObservableCollection<Items>();
+        public ObservableCollection<Items> retreive2 = new ObservableCollection<Items>();
+        private ObservableCollection<Items> buffer = new ObservableCollection<Items>();
 
-    //    public static TodoItem local;
-        public static TodoItem checked_item;
-        public static TodoItem local = new TodoItem();
+    //    public static Items local;
+        public static Items checked_item;
+        public static Items local = new Items();
 
         public static MobileServiceClient MobileService;
-        private static IMobileServiceTable<TodoItem> todoTable;
+        private static IMobileServiceTable<Items> itemTable;
 
         IsolatedStorageSettings settings = IsolatedStorageSettings.ApplicationSettings;
 
         public string pnumber;
+        public int user_id;
+        public string user_name;
 
         static bool online;
     
@@ -70,9 +72,15 @@ namespace ShopperSoft
             if (settings.Contains("Pnumber"))
             {
                 pnumber = (string)settings["Pnumber"];
+                user_id = (int)settings["id"];
+                user_name = (string)settings["name"];
             }
-     //
-//            else settings.Add("emailFlag", false);
+            else
+            {
+                // TODO : Navigate to credential screen
+                // Add user to table(online, offline).
+                // Add user to storage
+            }
         }
 
          private void NetworkChange(object sender, NetworkNotificationEventArgs e)
@@ -90,18 +98,18 @@ namespace ShopperSoft
 
                 //TODO Change link
                 MobileService = new MobileServiceClient(
-                     "https://saaman.azure-mobile.net/", 
-                       "BPWiwYHRGotSjuciwiTyBSHwDnZNvj71"
+                     "https://shopappdata.azure-mobile.net/",
+                       "dkwwuiuHYYQwbozjKaWRJYYpEiTjFt73"
                 );
-                todoTable = MobileService.GetTable<TodoItem>();
+                itemTable = MobileService.GetTable<Items>();
                 
                 // Add buffer items in tasks
                 buffer = XmlTaskService.GetTasks("buffer.xml");
-                foreach (TodoItem buffitem in buffer)
+                foreach (Items buffitem in buffer)
                 {
                     try
                     {
-                        await todoTable.InsertAsync(buffitem);
+                        await itemTable.InsertAsync(buffitem);
                         XmlTaskService.CreateTask(buffitem, "tasks.xml");
                     }
                     catch
@@ -116,13 +124,13 @@ namespace ShopperSoft
                 //TODO : Handle this 
                 // Transfer Checked properties
                 buffer = XmlTaskService.GetTasks("checked.xml");
-                foreach (TodoItem buffitem in buffer)
+                foreach (Items buffitem in buffer)
                 {
                     checked_item = XmlTaskService.GetTasksByText(buffitem.Text, "tasks.xml");
-                    checked_item.Complete = true;
+                    checked_item.shared = true;
                     try
                     {
-                        await todoTable.UpdateAsync(checked_item);
+                        await itemTable.UpdateAsync(checked_item);
                     }
                     catch
                     {
@@ -285,16 +293,14 @@ namespace ShopperSoft
             var itemName = NewItemTextBox.Text;
             NewItemTextBox.Text = "";
 
-            // TODO: Add item to database.
-            
-
             local.Id = 0;        
             local.Text = itemName;
- //           local.Complete = todoItem.Complete;
+ //           local.shared = todoItem.shared;
+            local.shared = false;
 
             if (online)
             {
-                await todoTable.InsertAsync(local);
+                await itemTable.InsertAsync(local);
             }
 
             if (!online)
@@ -303,7 +309,7 @@ namespace ShopperSoft
             }
             else
             {
-                XmlTaskService.CreateTask(local, "tasks.xml");
+                Debug.WriteLine(XmlTaskService.CreateTask(local, "tasks.xml"));
             }
           //  int itemId = 0;// REMOVE THIS
             int itemId = local.Id;
@@ -356,11 +362,11 @@ namespace ShopperSoft
 
             retreive = XmlTaskService.GetTasks("tasks.xml");
             retreive2 = XmlTaskService.GetTasks("buffer.xml");
-            foreach (TodoItem buffitem in retreive)
+            foreach (Items buffitem in retreive)
             {
                 AddNewItemToItemGrid(buffitem.Text, buffitem.Id);
             }
-            foreach (TodoItem buffitem in retreive2)
+            foreach (Items buffitem in retreive2)
             {
                 AddNewItemToItemGrid(buffitem.Text, buffitem.Id);
             }

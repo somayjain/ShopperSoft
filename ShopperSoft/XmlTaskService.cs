@@ -17,10 +17,10 @@ namespace ShopperSoft
     {
         //       public const string XmlFile = "tasks.xml";
 
-        public static ObservableCollection<TodoItem> GetTasks(string XmlFile)
+        public static ObservableCollection<Items> GetTasks(string XmlFile)
         {
-            ObservableCollection<TodoItem> tasks_ret = new ObservableCollection<TodoItem>();
-            var tasks = new List<TodoItem>();
+            ObservableCollection<Items> tasks_ret = new ObservableCollection<Items>();
+            var tasks = new List<Items>();
             using (IsolatedStorageFile store = IsolatedStorageFile.GetUserStoreForApplication())
             {
                 if (store.FileExists(XmlFile))
@@ -31,17 +31,16 @@ namespace ShopperSoft
                     {
                         XDocument doc = XDocument.Load(sr);
                         tasks = (from d in doc.Descendants("task")
-                                 select new TodoItem
+                                 select new Items
                                  {
-                                     //                                   Category = (string)d.Attribute("category"),
                                      Id = (int)d.Element("Id"),
                                      Text = (string)d.Element("Text"),
-                                     //                                   CreateDate = (DateTime)d.Element("createdate"),
-                                     //                                   DueDate = (DateTime)d.Element("duedate"),
-                                     Complete = (bool)d.Element("Complete")
-                                 }).ToList<TodoItem>();
+                                     shared = (bool)d.Element("shared"),
+                                     User_Id = (int)d.Element("User_Id"),
+                                     complete = (bool)d.Element("complete")
+                                 }).ToList<Items>();
                     }
-                    foreach (TodoItem item in tasks)
+                    foreach (Items item in tasks)
                         tasks_ret.Add(item);
 
                 }
@@ -49,9 +48,9 @@ namespace ShopperSoft
             return tasks_ret;
         }
 
-        public static TodoItem GetTasksById(int id, string XmlFile)
+        public static Items GetTasksById(int id, string XmlFile)
         {
-            TodoItem item = new TodoItem();
+            Items item = new Items();
 
             using (IsolatedStorageFile store = IsolatedStorageFile.GetUserStoreForApplication())
             {
@@ -71,7 +70,7 @@ namespace ShopperSoft
                                 item.Id = id;
                                 item.Text = (string)ele.Element("task").Element("Text").Value;
 
-                                item.Complete = ele.Element("task").Element("Complete").Value == "true" ? true : false;
+                                item.shared = ele.Element("task").Element("shared").Value == "true" ? true : false;
                                 break;
                             }
                         }
@@ -84,9 +83,9 @@ namespace ShopperSoft
             return item;
         }
 
-        public static TodoItem GetTasksByText(string text, string XmlFile)
+        public static Items GetTasksByText(string text, string XmlFile)
         {
-            TodoItem item = new TodoItem();
+            Items item = new Items();
 
             using (IsolatedStorageFile store = IsolatedStorageFile.GetUserStoreForApplication())
             {
@@ -104,8 +103,9 @@ namespace ShopperSoft
                             {
                                 item.Id = int.Parse(ele.Element("Id").Value);
                                 item.Text = (string)ele.Element("Text").Value;
-                                //                                item.Complete = false;
-                                item.Complete = ele.Element("Complete").Value == "true" ? true : false;
+                                item.User_Id = int.Parse(ele.Element("User_Id").Value);
+                                item.shared = ele.Element("shared").Value == "true" ? true : false;
+                                item.complete = ele.Element("complete").Value == "true" ? true : false;
                                 break;
                             }
                         }
@@ -115,7 +115,7 @@ namespace ShopperSoft
             return item;
         }
 
-        public static void UpdateId(int id, TodoItem item, string XmlFile)
+        public static void UpdateId(int id, Items item, string XmlFile)
         {
 
 
@@ -163,7 +163,7 @@ namespace ShopperSoft
             return true;
         }
 
-        public static bool CreateTask(TodoItem t, string XmlFile)
+        public static bool CreateTask(Items t, string XmlFile)
         {
 
             var doc = ReadXml(XmlFile);
@@ -175,8 +175,10 @@ namespace ShopperSoft
                     doc.Element("tasks").Add(
                         new XElement("task",
                                      new XElement("Text", t.Text),
-                                     new XElement("Complete", "false"),
-                                     new XElement("Id", t.Id)
+                                     new XElement("shared", "false"),
+                                     new XElement("Id", t.Id),
+                                     new XElement("User_Id", t.User_Id),
+                                     new XElement("complete", "false")
                             ));
                     WriteXml(doc, XmlFile);
                 }
@@ -186,8 +188,10 @@ namespace ShopperSoft
                            new XElement("tasks",
                                    new XElement("task",
                                          new XElement("Text", t.Text),
-                                         new XElement("Complete", "false"),
-                                         new XElement("Id", t.Id)
+                                         new XElement("shared", "false"),
+                                         new XElement("Id", t.Id),
+                                         new XElement("User_Id", t.User_Id),
+                                         new XElement("complete", "false")
                                    )
                       ));
                     WriteXml(doc, XmlFile);
@@ -249,7 +253,7 @@ namespace ShopperSoft
             {
                 if (ele != null && (string)ele.Attribute("Id") == id)
                 {
-                    ele.SetElementValue("Complete", "true");
+                    ele.SetElementValue("shared", "true");
                     break;
                 }
             }
