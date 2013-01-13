@@ -23,8 +23,13 @@
 			<!--Pivot item one-->
 			<controls:PivotItem Header="User" Margin="0,10,0,1">
 				<Grid HorizontalAlignment="Left" Height="624" VerticalAlignment="Top" Width="480">
-                    <watermark:WatermarkedTextBox Watermark="Add Item" x:Name="NewItemTextBox" HorizontalAlignment="Left" Height="72" TextWrapping="Wrap" VerticalAlignment="Top" Width="395"/>
-					<Button Margin="400,0,0,0" BorderThickness="0" BorderBrush="{x:Null}" Foreground="{x:Null}" Width="80" Tap="AddNewItem" VerticalAlignment="Top" Height="72">
+                    <watermark:WatermarkedTextBox Watermark="Add Item" x:Name="NewItemTextBox" HorizontalAlignment="Left" Height="72" TextWrapping="Wrap" VerticalAlignment="Top" Width="330"/>
+                    <Button HorizontalAlignment="Left" VerticalAlignment="Top" Margin="337,0,0,0" Width="70" BorderBrush="{x:Null}" Foreground="{x:Null}">
+								<Button.Background>
+									<ImageBrush ImageSource="/Assets/Icons/appbar.microphone.png" Stretch="None"/>
+								</Button.Background>
+					</Button>
+					<Button Margin="410,0,0,0" BorderThickness="0" BorderBrush="{x:Null}" Foreground="{x:Null}" Width="70" Tap="AddNewItem" VerticalAlignment="Top" Height="72">
 								<Button.Background>
 									<ImageBrush ImageSource="/Assets/Icons/appbar.add.png" Stretch="None"/>
 								</Button.Background>

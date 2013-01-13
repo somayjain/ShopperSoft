@@ -328,6 +328,14 @@ namespace ShopperSoft
         private async void ShareItemWithFriends(object sender, System.Windows.Input.GestureEventArgs e)
         {
             var itemId = ((Button)sender).Tag.ToString();
+
+            foreach (var objects in ((Grid)((Button)sender).Parent).Children) {
+                if (objects is TextBlock)
+                {
+                    var itemName = ((TextBlock)objects).Text;
+                }
+            }
+
            var ads = ((Button)sender).DataContext.ToString();
            Debug.WriteLine(ads);
            Debug.WriteLine(((Button)sender).FindName("Text") ); 
