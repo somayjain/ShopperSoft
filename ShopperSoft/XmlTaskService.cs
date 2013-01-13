@@ -40,8 +40,12 @@ namespace ShopperSoft
                                      complete = (bool)d.Element("complete")
                                  }).ToList<Items>();
                     }
+                    System.Diagnostics.Debug.WriteLine("get tasks");
                     foreach (Items item in tasks)
+                    {
+                        System.Diagnostics.Debug.WriteLine(item.Id);
                         tasks_ret.Add(item);
+                    }
 
                 }
             }
@@ -62,15 +66,16 @@ namespace ShopperSoft
                     {
                         XDocument doc = XDocument.Load(sr);
 
-                        foreach (var ele in doc.Descendants())
+                        foreach (XElement ele in doc.Descendants("task"))
                         {
 
-                            if (ele != null)//&& int.Parse(ele.Element("task").Element("Id").Value)==id )
+                            if (ele != null && int.Parse(ele.Element("Id").Value) == id)
                             {
-                                item.Id = id;
-                                item.Text = (string)ele.Element("task").Element("Text").Value;
-
-                                item.shared = ele.Element("task").Element("shared").Value == "true" ? true : false;
+                                item.Id = int.Parse(ele.Element("Id").Value);
+                                item.Text = (string)ele.Element("Text").Value;
+                                item.User_Id = int.Parse(ele.Element("User_Id").Value);
+                                item.shared = ele.Element("shared").Value == "true" ? true : false;
+                                item.complete = ele.Element("complete").Value == "true" ? true : false;
                                 break;
                             }
                         }
