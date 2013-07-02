@@ -88,12 +88,13 @@ namespace ShopperSoft
         private async void CheckNetworkAvailability()
         {
             online = NetworkInterface.NetworkInterfaceType.ToString()!="None";
- 
+            Debug.WriteLine("online is ");
+            Debug.WriteLine(online);
             if (online)
             {
                 MobileService = new MobileServiceClient(
-                     "https://shopappdata.azure-mobile.net/",
-                       "dkwwuiuHYYQwbozjKaWRJYYpEiTjFt73"
+                     "https://shoppersoft.azure-mobile.net/",
+                       "AsAvAgbzkmtnChuXiaNJnlMeyEpqBf57"
                 );
                 itemTable = MobileService.GetTable<Items>();
                 
@@ -151,6 +152,8 @@ namespace ShopperSoft
         {
             CheckNetworkAvailability();
             // TODO : improve 
+            Console.WriteLine("Here");
+            Debug.WriteLine("Here");
             if (settings.Contains("Pnumber"))
             {
                 pnumber = (string)settings["Pnumber"];
@@ -159,6 +162,7 @@ namespace ShopperSoft
             }
             else
             {
+                Debug.WriteLine("here again");
                 ((PhoneApplicationFrame)Application.Current.RootVisual).Navigate(new Uri("/Login.xaml", UriKind.Relative));
             }
 
@@ -616,16 +620,21 @@ namespace ShopperSoft
 
                     var userTable = MobileService.GetTable<Users>();
                     var list = await userTable.Where(user2 => user2.Phone_no == e.PhoneNumber).ToListAsync();
-
+                    Debug.WriteLine(list);
                     try
                     {
+                        Debug.WriteLine(user_id);
+                        Debug.WriteLine(list[0]);
+                        Debug.WriteLine("Reached here");
                         Relations friend = new Relations();
                         friend.Receiver_Id = user_id;
                         friend.Sender_Id = list[0].Id;
+                        
                         friend.Status = 3;
 
                         relationsTable = MobileService.GetTable<Relations>();
                         await relationsTable.InsertAsync(friend);
+                        Debug.WriteLine("SUCCESS");
                     }
                     catch { }
                 }

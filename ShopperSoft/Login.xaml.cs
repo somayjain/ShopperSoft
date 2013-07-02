@@ -38,8 +38,8 @@ namespace ShopperSoft
                 user.Phone_no = phoneNo;
                 user.uri = "uri here";
                 MobileService = new MobileServiceClient(
-                     "https://shopappdata.azure-mobile.net/",
-                       "dkwwuiuHYYQwbozjKaWRJYYpEiTjFt73"
+                     "https://shoppersoft.azure-mobile.net/",
+                       "AsAvAgbzkmtnChuXiaNJnlMeyEpqBf57"
                 );
                 userTable = MobileService.GetTable<Users>();
 
